@@ -1,0 +1,45 @@
+# ==========================================
+# Archivos de Entorno y Credenciales (¡CRÍTICO!)
+# ==========================================
+.env
+.env.*
+*.txt
+!.gitignore
+!README.md
+# Si quieres mantener promp.txt y tareas.txt en Git, descomenta las siguientes 2 líneas:
+# !promp.txt
+# !tareas.txt
+
+# ==========================================
+# Python / Django (Backend)
+# ==========================================
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+backend/static/
+backend/media/
+
+# ==========================================
+# Node.js / Vue / Vite (Frontend)
+# ==========================================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/npm-debug.log*
+
+# ==========================================
+# Base de Datos y Adjuntos / Imágenes Locales
+# ==========================================
+database/
+*.jpg
+*.png
+
+# ==========================================
+# Sistema Operativo y Editores (Obsidian/VSCode)
+# ==========================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.obsidian/

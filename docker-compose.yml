@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: maro_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-maro_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maro_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-clinica_maro_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-maro_admin} -d ${POSTGRES_DB:-clinica_maro_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: maro_django
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app:z
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_NAME=${POSTGRES_DB:-clinica_maro_db}
+      - DB_USER=${POSTGRES_USER:-maro_admin}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-maro_secure_password}
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: maro_frontend
+    restart: always
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./frontend:/app:z
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
