@@ -3,12 +3,8 @@
 # ==========================================
 .env
 .env.*
-*.txt
-!.gitignore
-!README.md
-# Si quieres mantener promp.txt y tareas.txt en Git, descomenta las siguientes 2 líneas:
-# !promp.txt
-# !tareas.txt
+contraseñaAppGoogle.txt
+backend/config/contraAppGoogle.txt
 
 # ==========================================
 # Python / Django (Backend)
@@ -36,7 +32,7 @@ database/
 *.png
 
 # ==========================================
-# Sistema Operativo y Editores (Obsidian/VSCode)
+# Sistema Operativo y Editores
 # ==========================================
 .DS_Store
 Thumbs.db
