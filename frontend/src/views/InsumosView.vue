@@ -365,8 +365,8 @@ onMounted(async () => {
 const productosFiltrados = computed(() => {
   return store.productos.filter(p => {
     const coincideNombre = p.nombre.toLowerCase().includes(filtroBusqueda.value.toLowerCase()) ||
-                          p.codigo_barras.toLowerCase().includes(filtroBusqueda.value.toLowerCase()) ||
-                          (p.marca && p.marca.toLowerCase().includes(filtroBusqueda.value.toLowerCase()))
+                           p.codigo_barras.toLowerCase().includes(filtroBusqueda.value.toLowerCase()) ||
+                           (p.marca && p.marca.toLowerCase().includes(filtroBusqueda.value.toLowerCase()))
     
     const coincideCat = filtroCategoria.value === '' || p.categoria === Number(filtroCategoria.value)
     
@@ -425,56 +425,33 @@ const guardarLote = async () => {
   }
 }
 
+// NUEVA FUNCIÓN REFACCIONADA: Exportar usando Axios y el Store
 const descargarExcel = async () => {
   try {
-    const token = localStorage.getItem('access_token')
-    const response = await fetch('/api/carga-masiva/exportar-inventario/', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    if (!response.ok) throw new Error('Error al generar la descarga del inventario.')
-    
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'inventario_clinica_maro.xlsx'
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
+    await store.exportarExcel()
   } catch (err) {
     alert(err.message || 'Error al exportar inventario.')
   }
 }
 
+// NUEVA FUNCIÓN REFACCIONADA: Importar usando Axios y el Store
 const subirArchivo = async () => {
   const file = fileInput.value?.files[0]
   if (!file) return alert('Por favor selecciona un archivo Excel (.xlsx).')
 
   cargandoImportacion.value = true
-  const formData = new FormData()
-  formData.append('file', file)
-
+  
   try {
-    const token = localStorage.getItem('access_token')
-    const response = await fetch('/api/carga-masiva/importar-excel/', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData
-    })
-
-    const resData = await response.json()
-
-    if (response.ok) {
-      alert(resData.message || 'Importación completada con éxito.')
-      mostrarModalImportar.value = false
-      await store.fetchProductos()
-    } else {
-      alert(resData.error || 'Ocurrió un error al procesar el archivo.')
-    }
+    const data = await store.importarExcel(file)
+    alert(data.message || 'Importación completada con éxito.')
+    mostrarModalImportar.value = false
   } catch (err) {
-    alert('Error de conexión al importar el archivo Excel.')
+    alert(err.message || 'Error de conexión al importar el archivo Excel.')
   } finally {
     cargandoImportacion.value = false
+    if (fileInput.value) {
+      fileInput.value.value = '' // Limpiar el input file
+    }
   }
 }
 

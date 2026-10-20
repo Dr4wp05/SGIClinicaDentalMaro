@@ -28,6 +28,7 @@
             <tr>
               <th class="px-6 py-4">Fecha y Hora</th>
               <th class="px-6 py-4">Tipo</th>
+              <th class="px-6 py-4">Responsable</th>
               <th class="px-6 py-4">Insumo</th>
               <th class="px-6 py-4">Lote</th>
               <th class="px-6 py-4">Cantidad</th>
@@ -44,6 +45,12 @@
                   {{ m.tipo_movimiento }}
                 </span>
               </td>
+              <td class="px-6 py-4">
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-800 text-xs">{{ m.usuario_nombre || 'Sistema' }} {{ m.usuario_apellido || '' }}</span>
+                  <span class="text-[10px] text-slate-500 uppercase">{{ m.usuario_rol || 'N/A' }}</span>
+                </div>
+              </td>
               <td class="px-6 py-4 font-semibold text-slate-800">
                 {{ m.lote_detalle?.producto_nombre || '—' }}
               </td>
@@ -58,7 +65,7 @@
               </td>
             </tr>
             <tr v-if="store.movimientos.length === 0">
-              <td colspan="6" class="px-6 py-8 text-center text-slate-400">
+              <td colspan="7" class="px-6 py-8 text-center text-slate-400">
                 No hay movimientos registrados en la bitácora.
               </td>
             </tr>

@@ -112,3 +112,19 @@ class MovimientoInventario(models.Model):
 
     def __str__(self):
         return f"{self.tipo_movimiento} ({self.cantidad}) - {self.lote.producto.nombre}"
+
+class KitProcedimiento(models.Model):
+    nombre = models.CharField(max_length=150, unique=True) # ej: "Kit Endodoncia"
+    descripcion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.nombre
+
+class KitDetalle(models.Model):
+    kit = models.ForeignKey(KitProcedimiento, on_delete=models.CASCADE, related_name='insumos')
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
+    cantidad_necesaria = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.cantidad_necesaria}x {self.producto.nombre} en {self.kit.nombre}"

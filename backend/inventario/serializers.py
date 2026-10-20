@@ -66,6 +66,11 @@ class ProductoSerializer(serializers.ModelSerializer):
 
 class MovimientoInventarioSerializer(serializers.ModelSerializer):
     lote_detalle = LoteSerializer(source='lote', read_only=True)
+    # Agregamos estos dos campos para que el frontend pueda mostrarlos
+    usuario_nombre = serializers.ReadOnlyField(source='usuario.user.first_name')
+    usuario_apellido = serializers.ReadOnlyField(source='usuario.user.last_name')
+    usuario_rol = serializers.ReadOnlyField(source='usuario.rol')
+
     class Meta:
         model = MovimientoInventario
         fields = '__all__'

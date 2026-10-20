@@ -13,6 +13,10 @@ export const useInventoryStore = defineStore('inventory', {
       por_vencer: 0,
       total_alertas: 0
     },
+    // Nuevos estados para el módulo BI
+    reporteFinanciero: { capital_inmovilizado: 0, perdida_mermas: 0, total_lotes_activos: 0 },
+    reporteRotacion: [],
+    alertasVencimientos: [],
     loading: false,
     error: null
   }),
@@ -191,6 +195,88 @@ export const useInventoryStore = defineStore('inventory', {
       } finally {
         this.loading = false
       }
-    }
+    },
+
+    // NUEVA ACCIÓN BI: Trae todo lo necesario para la vista de Reportes
+    async fetchReportesBI() {
+      this.loading = true
+      this.error = null
+      try {
+        // Ejecutamos las peticiones en paralelo para mayor velocidad
+        const [resFinanciero, resRotacion, resVencimientos] = await Promise.all([
+          api.get('reportes/financiero/'),
+          api.get('reportes/rotacion/'),
+          api.get('alertas/vencimientos/')
+        ])
+        
+        this.reporteFinanciero = resFinanciero.data
+        this.reporteRotacion = resRotacion.data.results || resRotacion.data
+        this.alertasVencimientos = resVencimientos.data.results || resVencimientos.data
+      } catch (err) {
+        this.error = 'Error al cargar los reportes analíticos'
+        console.error(err)
+      } finally {
+        this.loading = false
+      }
+    },
+    async exportarExcel() {
+          try {
+            const response = await api.get('carga-masiva/exportar-inventario/', {
+              responseType: 'blob' // Fundamental para recibir archivos binarios
+            })
+            
+            // Crear un enlace temporal para forzar la descarga
+            const url = window.URL.createObjectURL(new Blob([response.data]))
+            const a = document.createElement('a')
+            a.href = url
+            a.download = 'inventario_clinica_maro.xlsx'
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            window.URL.revokeObjectURL(url)
+          } catch (err) {
+            console.error('Error al exportar inventario:', err)
+            throw new Error('Error al generar el archivo Excel de inventario.')
+          }
+        },
+    
+        // NUEVA ACCIÓN: Importar Inventario desde Excel
+        async importarExcel(file) {
+          this.loading = true
+          try {
+            const formData = new FormData()
+            formData.append('file', file)
+            
+            const response = await api.post('carga-masiva/importar-excel/', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            })
+            
+            // Recargar datos tras una importación exitosa
+            await this.fetchProductos()
+            await this.fetchResumenAlertas()
+            
+            return response.data
+          } catch (err) {
+            const msg = err.response?.data?.error || 'Error al importar el archivo Excel.'
+            console.error('Error en importarExcel:', msg)
+            throw new Error(msg)
+          } finally {
+            this.loading = false
+          }
+        },
+        async consumirKit(idKit, motivo) {
+              try {
+                const response = await api.post(`kits/${idKit}/consumir/`, { motivo_perdida: motivo })
+                await this.fetchMovimientos()
+                await this.fetchProductos()
+                await this.fetchResumenAlertas()
+                return response.data
+              } catch (err) {
+                const msg = err.response?.data?.error || 'Error al consumir el kit.'
+                throw new Error(msg)
+              }
+            }
   }
 })

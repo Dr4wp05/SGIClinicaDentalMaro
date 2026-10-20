@@ -1,4 +1,41 @@
-Estado Actual del Proyecto IntegradoETAPA 1: Requerimientos Esenciales (Completada al 100%)[x] Autenticación y RBAC: Sistema de roles (Administrador, Bodega, Dentista, Asistente) sincronizado en backend Django y frontend con Navigation Guards.  [x] Gestión de Insumos y Lotes (CRUD): Creación de productos, registro de lotes con fechas de vencimiento, costos unitarios y cálculo automático de stock.  [x] Movimientos de Inventario: Historial y registro de Entradas, Consumos, Mermas por Pérdida y Vencimientos.  [x] Órdenes de Compra Automáticas (RF07): Sugerencias por quiebre/stock crítico, cambio de estados (borrador, enviada, recibida) y simulación de envío por correo electrónico.  Requerimientos y Funcionalidades Pendientes (Etapa 2)1. Módulo de Reportes (Business Intelligence Clínico)Estado: Pendiente (Inactivo como "Pronto" en la barra lateral).Funcionalidades:Panel de métricas financieras (Capital total inmovilizado en stock y costo acumulado de mermas/pérdidas).Ranking de rotación (Top productos más consumidos vs. productos estancados).Proyección de vencimientos a 30, 60 y 90 días.Gráficos o resúmenes de balance mensual (Entradas vs. Salidas).2. Carga Masiva E/S mediante Excel (.xlsx / .csv)Estado: Pendiente.Funcionalidades:Importación masiva de catálogo de productos e ingreso inicial de lotes desde hojas de cálculo.Exportación del estado actual del inventario y del historial de movimientos a Excel/CSV.3. Generador de Órdenes de Compra en PDF / Documento FormalEstado: Pendiente.Funcionalidades:Exportación de órdenes de compra en formato PDF descargable e imprimible con membrete de la clínica para enviar directamente a los proveedores.4. Kits Quirúrgicos y de ProcedimientoEstado: Pendiente.Funcionalidades:Agrupación de varios insumos en un kit estándar (ej: "Kit Destartraje" o "Kit Endodoncia").Descuento automático de stock de múltiples lotes con un solo clic al realizar un procedimiento.
+Estado Actual del Proyecto Integrado
 
-1. visualizar fecha de caducidad
-2. rol de gestor de compras
+
+
+ETAPA 1: Requerimientos Esenciales (Completada al 100%)
+
+[x] Autenticación y RBAC: Sistema de roles (Administrador, Bodega, Dentista, Asistente) sincronizado en backend Django y frontend con Navigation Guards.
+
+[x] Gestión de Insumos y Lotes (CRUD): Creación de productos, registro de lotes con fechas de vencimiento, costos unitarios y cálculo automático de stock.
+
+[x] Movimientos de Inventario: Historial y registro de Entradas, Consumos, Mermas por Pérdida y Vencimientos.
+
+[x] Órdenes de Compra Automáticas (RF07): Sugerencias por quiebre/stock crítico, cambio de estados (borrador, enviada, recibida) y simulación de envío por correo electrónico.
+
+
+
+ETAPA 2: Requerimientos y Funcionalidades Avanzadas (Completada al 100%)
+
+[x] Corrección Feedback Profesor (Auditoría): Inyección automática e inmutable del usuario en el log de movimientos desde el backend vía token JWT.
+
+[x] Módulo de Reportes (Business Intelligence Clínico): Tableros de capital inmovilizado, pérdidas, rotación y proyección de vencimientos.
+
+[x] Carga Masiva E/S mediante Excel (.xlsx / .csv): Importación y exportación de stock usando Pandas y OpenPyXL integrado con Axios.
+
+[x] Generador de Órdenes de Compra en PDF: Exportación formal con membrete utilizando @media print de CSS.
+
+[x] Kits Quirúrgicos y de Procedimiento: Modelos de agrupación y algoritmo transaccional con descuento FEFO (First Expired, First Out).
+
+[x] Visualizar fecha de caducidad.
+
+[x] Rol de gestor de compras (cubierto en la simplificación de perfiles de acceso / RBAC).
+
+
+
+ETAPA 3: Testeo UI/UX y Despliegue Cloud (Pendiente)
+
+[ ] Pruebas y QA Local: Testeo profundo de interfaz en frontend, validación de modales, responsividad y flujos transaccionales.
+
+[ ] Infraestructura como Código (IaC): Construcción de scripts de Terraform (.tf) para aprovisionar AWS.
+
+[ ] Despliegue en AWS: Configuración final en instancia EC2, Nginx, contenedores Docker y PostgreSQL (RDS).

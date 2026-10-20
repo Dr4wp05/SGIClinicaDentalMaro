@@ -13,6 +13,7 @@ from django.conf import settings
 import pandas as pd
 from django.http import HttpResponse
 from rest_framework.parsers import MultiPartParser, FormParser
+from .models import KitProcedimiento, Lote, MovimientoInventario, PerfilUsuario
 
 from .models import Producto, Lote, Categoria, MovimientoInventario, Proveedor, PerfilUsuario, OrdenCompra
 from .serializers import (
@@ -398,3 +399,65 @@ class CargaMasivaViewSet(viewsets.ViewSet):
             df.to_excel(writer, index=False, sheet_name='Stock Actual')
 
         return response
+
+class KitProcedimientoViewSet(viewsets.ModelViewSet):
+    queryset = KitProcedimiento.objects.filter(activo=True)
+    # serializer_class = KitProcedimientoSerializer (Debes crear un serializer básico para esto)
+
+    @action(detail=True, methods=['post'], url_path='consumir')
+    def consumir_kit(self, request, pk=None):
+        kit = self.get_object()
+        perfil_usuario = getattr(request.user, 'perfil', None) or PerfilUsuario.objects.first()
+        motivo = request.data.get('motivo_perdida', f"Consumo de {kit.nombre} en Box")
+        
+        movimientos_registrados = []
+        
+        try:
+            with transaction.atomic():
+                # Iteramos sobre cada insumo que compone el kit
+                for detalle in kit.insumos.all():
+                    cantidad_restante_por_descontar = detalle.cantidad_necesaria
+                    
+                    # Buscamos los lotes del producto que tengan stock, ordenados por fecha_vencimiento (FEFO)
+                    lotes_disponibles = Lote.objects.select_for_update().filter(
+                        producto=detalle.producto,
+                        cantidad_actual__gt=0,
+                        agotado=False
+                    ).order_by('fecha_vencimiento')
+
+                    for lote in lotes_disponibles:
+                        if cantidad_restante_por_descontar == 0:
+                            break
+                            
+                        # Calculamos cuánto podemos descontar de este lote
+                        descuento = min(cantidad_restante_por_descontar, lote.cantidad_actual)
+                        lote.cantidad_actual -= descuento
+                        cantidad_restante_por_descontar -= descuento
+                        
+                        if lote.cantidad_actual == 0:
+                            lote.agotado = True
+                            lote.fecha_agotado = timezone.now()
+                        lote.save()
+
+                        # Registramos el movimiento individual
+                        mov = MovimientoInventario.objects.create(
+                            lote=lote,
+                            usuario=perfil_usuario,
+                            tipo_movimiento='CONSUMO',
+                            cantidad=descuento,
+                            motivo_perdida=motivo
+                        )
+                        movimientos_registrados.append(mov.id)
+
+                    # Si después de revisar todos los lotes aún falta cantidad por descontar, quebramos la transacción
+                    if cantidad_restante_por_descontar > 0:
+                        raise ValueError(f"Stock insuficiente para el insumo '{detalle.producto.nombre}'. Faltan {cantidad_restante_por_descontar} unidades.")
+
+            return Response({
+                'message': f'Se consumió exitosamente 1 {kit.nombre}.',
+                'movimientos_generados': movimientos_registrados
+            }, status=status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            # transaction.atomic() revertirá todos los cambios hechos en los lotes
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
